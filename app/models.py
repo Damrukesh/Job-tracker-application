@@ -6,6 +6,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     email = Column(String, unique=True)
     password = Column(String)
+    role = Column(String, default="user")   # user | admin
 
 class Job(Base):
     __tablename__ = "jobs"
@@ -14,3 +15,4 @@ class Job(Base):
     role = Column(String)
     status = Column(String)
     user_id = Column(Integer, ForeignKey("users.id"))
+    admin_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # Assigned admin
