@@ -12,7 +12,7 @@ def hash_password(password: str):
 
 def verify_password(plain, hashed):
     return pwd_context.verify(plain, hashed)
-
+ 
 def create_access_token(data: dict):
     expire = datetime.utcnow() + timedelta(hours=2)
     data.update({"exp": expire})
