@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from .models import User
 from . import db, bcrypt
-from flask_jwt_extended import create_access_token,jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token,jwt_required, get_jwt_identity,get_jwt
 from .models import Role
 
 auth_routes = Blueprint("auth", __name__)
@@ -12,7 +12,7 @@ def signup():
 
     hashed_pw = bcrypt.generate_password_hash(
         data["password"]
-    ).decode("utf-8")
+    )
 
     default_role = Role.query.filter_by(role_name="user").first()
 
@@ -40,8 +40,8 @@ def login():
         return jsonify({"error": "Invalid credentials"}), 401
 
     token = create_access_token(
-        identity=user.id,
-        additional_claims={"role": user.role.role_name}
+        identity=str(user.id),
+        additional_claims={"role": str(user.role.role_name)}
     )
 
     return jsonify({"access_token": token})
@@ -55,8 +55,6 @@ def protected():
 @jwt_required()
 def admin_only():
     claims = get_jwt()
-
     if claims["role"] != "admin":
         return jsonify({"error": "Admins only"}), 403
-
     return jsonify({"message": "Welcome Admin"})
