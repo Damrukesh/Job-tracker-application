@@ -1,18 +1,12 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
-from database import Base
+from . import db
+class Role(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    role_name = db.Column(db.String(50), unique=True, nullable=False)
 
-class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True)
-    email = Column(String, unique=True)
-    password = Column(String)
-    role = Column(String, default="user")   # user | admin
-
-class Job(Base):
-    __tablename__ = "jobs"
-    id = Column(Integer, primary_key=True)
-    company = Column(String)
-    role = Column(String)
-    status = Column(String)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    admin_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # Assigned admin
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(200), nullable=False)
+    role_id = db.Column(db.Integer, db.ForeignKey("role.id"))
+    role = db.relationship("Role")
