@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from app.config import Config
+from flask_cors import CORS
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
@@ -19,5 +20,6 @@ def create_app():
 
     from .routes import auth_routes
     app.register_blueprint(auth_routes)
+    CORS(app)
 
     return app

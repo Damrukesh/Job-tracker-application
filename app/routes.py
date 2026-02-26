@@ -14,13 +14,14 @@ def signup():
         data["password"]
     )
 
-    default_role = Role.query.filter_by(role_name="user").first()
+    role_name = data.get("role", "user")
+    selected_role = Role.query.filter_by(role_name=role_name).first()
 
     user = User(
         name=data["name"],
         email=data["email"],
         password_hash=hashed_pw,
-        role=default_role
+        role=selected_role
     )
 
     db.session.add(user)
@@ -58,3 +59,15 @@ def admin_only():
     if claims["role"] != "admin":
         return jsonify({"error": "Admins only"}), 403
     return jsonify({"message": "Welcome Admin"})
+@auth_routes.route("/profile", methods=["GET"])
+@jwt_required()
+def profile():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+
+    return jsonify({
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "role": user.role.role_name
+    })
