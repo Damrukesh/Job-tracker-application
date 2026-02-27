@@ -1,20 +1,27 @@
-import { useState } from "react";
-import axios from "axios";
+import { useState } from "react"
+import { useNavigate, Link } from "react-router-dom"
 
-function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+export default function Login() {
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const navigate = useNavigate()
 
   const handleLogin = async () => {
-    const res = await axios.post("http://127.0.0.1:5000/login", {
-      email,
-      password,
-    });
+    const res = await fetch("http://127.0.0.1:5000/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    })
 
-    localStorage.setItem("token", res.data.access_token);
+    const data = await res.json()
 
-    alert("Login successful");
-  };
+    if (data.access_token) {
+      localStorage.setItem("token", data.access_token)
+      navigate("/dashboard")
+    } else {
+      alert("Login failed")
+    }
+  }
 
   return (
     <div>
@@ -22,18 +29,22 @@ function Login() {
 
       <input
         placeholder="Email"
-        onChange={(e) => setEmail(e.target.value)}
+        onChange={e => setEmail(e.target.value)}
       />
+      <br />
 
       <input
         type="password"
         placeholder="Password"
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={e => setPassword(e.target.value)}
       />
+      <br />
 
       <button onClick={handleLogin}>Login</button>
-    </div>
-  );
-}
 
-export default Login;
+      <p>
+        No account? <Link to="/signup">Signup</Link>
+      </p>
+    </div>
+  )
+}

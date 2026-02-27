@@ -1,62 +1,44 @@
-import axios from "axios";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 
-function Dashboard() {
-  const navigate = useNavigate();
-  const [message, setMessage] = useState("");
-  const [role, setRole] = useState("");
-
-  // 🔐 Logout function (OUTSIDE useEffect)
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
-  };
+export default function Dashboard() {
+  const [role, setRole] = useState(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token")
 
     if (!token) {
-      navigate("/");
-      return;
+      navigate("/")
+      return
     }
 
-    const fetchProfile = async () => {
-      try {
-        const res = await axios.get(
-          "http://127.0.0.1:5000/profile",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+    fetch("http://127.0.0.1:5000/profile", {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => setRole(data.role))
+      .catch(() => navigate("/"))
+  }, [navigate])
 
-        setMessage(`Welcome ${res.data.name}`);
-        setRole(res.data.role);
-      } catch (err) {
-        localStorage.removeItem("token");
-        navigate("/");
-      }
-    };
-
-    fetchProfile();
-  }, [navigate]);
+  const logout = () => {
+    localStorage.removeItem("token")
+    navigate("/")
+  }
 
   return (
     <div>
-      <h2>Dashboard (Protected)</h2>
-      <p>{message}</p>
+      <h2>Dashboard</h2>
 
-      {role === "admin" && <h3>Admin Controls</h3>}
-      {role === "manager" && <h3>Manager Panel</h3>}
-      {role === "user" && <h3>User Dashboard</h3>}
+      <button onClick={logout}>Logout</button>
 
-      <button onClick={handleLogout}>
-        Logout
-      </button>
+      <br /><br />
+
+      {role === "admin" && (
+        <button onClick={() => navigate("/admin")}>
+          Go to Admin Panel
+        </button>
+      )}
     </div>
-  );
+  )
 }
-
-export default Dashboard;

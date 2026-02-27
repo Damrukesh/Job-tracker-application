@@ -12,16 +12,16 @@ def signup():
 
     hashed_pw = bcrypt.generate_password_hash(
         data["password"]
-    )
+    ).decode("utf-8")
 
-    role_name = data.get("role", "user")
-    selected_role = Role.query.filter_by(role_name=role_name).first()
+    # Get default role = "user"
+    default_role = Role.query.filter_by(role_name="user").first()
 
     user = User(
         name=data["name"],
         email=data["email"],
         password_hash=hashed_pw,
-        role=selected_role
+        role=default_role
     )
 
     db.session.add(user)
@@ -35,14 +35,25 @@ def login():
 
     user = User.query.filter_by(email=data["email"]).first()
 
-    if not user or not bcrypt.check_password_hash(
-        user.password_hash, data["password"]
-    ):
+    # ❗ Check user exists
+    if not user:
+        return jsonify({"error": "Invalid credentials"}), 401
+
+    # ❗ Check password
+    try:
+        password_ok = bcrypt.check_password_hash(
+            user.password_hash, data["password"]
+        )
+    except ValueError:
+        # Stored hash is invalid or corrupted – treat as bad credentials
+        return jsonify({"error": "Invalid credentials"}), 401
+
+    if not password_ok:
         return jsonify({"error": "Invalid credentials"}), 401
 
     token = create_access_token(
-        identity=str(user.id),
-        additional_claims={"role": str(user.role.role_name)}
+        identity=user.id,
+        additional_claims={"role": user.role.role_name}
     )
 
     return jsonify({"access_token": token})
@@ -55,10 +66,38 @@ def protected():
 @auth_routes.route("/admin", methods=["GET"])
 @jwt_required()
 def admin_only():
-    claims = get_jwt()
-    if claims["role"] != "admin":
+    # Always check role from DB to avoid stale tokens
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+
+    if not user or not user.role or user.role.role_name != "admin":
         return jsonify({"error": "Admins only"}), 403
+
     return jsonify({"message": "Welcome Admin"})
+
+
+@auth_routes.route("/admin/users", methods=["GET"])
+@jwt_required()
+def get_users():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+
+    # 🔒 Admin-only protection based on DB role
+    if not user or not user.role or user.role.role_name != "admin":
+        return jsonify({"error": "Admins only"}), 403
+
+    users = User.query.all()
+
+    result = []
+    for u in users:
+        result.append({
+            "id": u.id,
+            "name": u.name,
+            "email": u.email,
+            "role": u.role.role_name
+        })
+
+    return jsonify(result)    
 @auth_routes.route("/profile", methods=["GET"])
 @jwt_required()
 def profile():
