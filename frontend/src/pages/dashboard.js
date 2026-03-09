@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import "./dashboard.css"
 
 export default function Dashboard() {
   const [role, setRole] = useState(null)
@@ -27,18 +28,64 @@ export default function Dashboard() {
   }
 
   return (
-    <div>
-      <h2>Dashboard</h2>
+    <div className="dashboard-page">
+      <div className="dashboard-shell">
+        <div className="dashboard-card">
+          <div className="dashboard-header">
+            <div className="dashboard-title">
+              <h2>Dashboard</h2>
+              <p>You are signed in to the job tracker.</p>
+            </div>
+            {role && (
+              <div
+                className={
+                  "dashboard-role-pill " +
+                  (role === "admin"
+                    ? "dashboard-role-pill--admin"
+                    : "dashboard-role-pill--user")
+                }
+              >
+                {role}
+              </div>
+            )}
+          </div>
 
-      <button onClick={logout}>Logout</button>
+          <div className="dashboard-main-actions">
+            <button className="dashboard-btn" type="button" onClick={logout}>
+              Logout
+            </button>
 
-      <br /><br />
+            {role === "admin" && (
+              <button
+                className="dashboard-btn"
+                type="button"
+                onClick={() => navigate("/admin")}
+              >
+                Admin panel
+              </button>
+            )}
+          </div>
 
-      {role === "admin" && (
-        <button onClick={() => navigate("/admin")}>
-          Go to Admin Panel
-        </button>
-      )}
+          <p className="dashboard-secondary">
+            <strong>RBAC tip:</strong> only accounts with the <code>admin</code> role can
+            access admin tools.
+          </p>
+        </div>
+
+        <div className="dashboard-card">
+          <h3 className="dashboard-side-card-title">About this app</h3>
+          <div className="dashboard-side-card-body">
+            <p>
+              This dashboard is protected by JWT authentication. Use it as a starting
+              point for your own job tracking workflow.
+            </p>
+            <p>
+              You can extend it with more pages and connect real job data while keeping
+              the same access control rules.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

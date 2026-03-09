@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
+import "./auth-layout.css"
 
 export default function Login() {
   const [email, setEmail] = useState("")
@@ -24,27 +25,55 @@ export default function Login() {
   }
 
   return (
-    <div>
-      <h2>Login</h2>
+    <div className="auth-shell">
+      <div className="auth-card">
+        <div className="auth-card-header">
+          <div className="auth-pill">
+            <span>●</span>
+            Job Tracker
+          </div>
+          <h2>Welcome back</h2>
+          <p>Sign in to access your dashboard and admin tools.</p>
+        </div>
 
-      <input
-        placeholder="Email"
-        onChange={e => setEmail(e.target.value)}
-      />
-      <br />
+        <div className="auth-form">
+          <div className="auth-field">
+            <label className="auth-label">Email</label>
+            <input
+              className="auth-input"
+              placeholder="you@example.com"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+            />
+          </div>
 
-      <input
-        type="password"
-        placeholder="Password"
-        onChange={e => setPassword(e.target.value)}
-      />
-      <br />
+          <div className="auth-field">
+            <label className="auth-label">Password</label>
+            <input
+              className="auth-input"
+              type="password"
+              placeholder="Your password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+            />
+          </div>
 
-      <button onClick={handleLogin}>Login</button>
+          <div className="auth-actions">
+            <button className="auth-primary-btn" type="button" onClick={handleLogin}>
+              Log in
+            </button>
 
-      <p>
-        No account? <Link to="/signup">Signup</Link>
-      </p>
+            <div className="auth-secondary-text">
+              No account yet? <Link to="/signup">Create one</Link>
+            </div>
+
+            <div className="auth-footer-hint">
+              Tip: use an admin account to access the admin panel.
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,0 +1,145 @@
+.dashboard-page {
+  min-height: 100vh;
+  padding: 2.5rem 1.5rem;
+  background: radial-gradient(circle at top, #0f172a 0, #020617 55%);
+  color: #e5e7eb;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+}
+
+.dashboard-shell {
+  width: 100%;
+  max-width: 960px;
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.3fr);
+  gap: 1.5rem;
+}
+
+.dashboard-card {
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  box-shadow:
+    0 20px 55px rgba(15, 23, 42, 0.9),
+    0 0 0 1px rgba(15, 23, 42, 0.9);
+  padding: 1.6rem 1.4rem;
+  box-sizing: border-box;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.dashboard-title h2 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.dashboard-title p {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+.dashboard-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.dashboard-role-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+}
+
+.dashboard-role-pill--admin {
+  background: rgba(22, 163, 74, 0.16);
+  color: #bbf7d0;
+  border: 1px solid rgba(34, 197, 94, 0.5);
+}
+
+.dashboard-role-pill--user {
+  background: rgba(59, 130, 246, 0.16);
+  color: #dbeafe;
+  border: 1px solid rgba(59, 130, 246, 0.5);
+}
+
+.dashboard-main-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.dashboard-btn {
+  padding: 0.55rem 0.9rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
+}
+
+.dashboard-btn:hover {
+  background: rgba(15, 23, 42, 1);
+  border-color: rgba(148, 163, 184, 0.9);
+  transform: translateY(-1px);
+}
+
+.dashboard-secondary {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin-top: 1.25rem;
+}
+
+.dashboard-secondary strong {
+  color: #e5e7eb;
+}
+
+.dashboard-side-card-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  color: #e5e7eb;
+}
+
+.dashboard-side-card-body {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  line-height: 1.5;
+}
+
+.dashboard-side-card-body code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 0.8rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.35rem;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(55, 65, 81, 0.95);
+  color: #e5e7eb;
+}
+
+@media (max-width: 768px) {
+  .dashboard-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+

@@ -1,0 +1,222 @@
+body {
+  background: #0f172a;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.admin-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  box-sizing: border-box;
+}
+
+.admin-card {
+  width: 100%;
+  max-width: 960px;
+  background: radial-gradient(circle at top left, #1f2937 0, #020617 55%);
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.9),
+    0 0 0 1px rgba(15, 23, 42, 0.9);
+  padding: 2.25rem 2rem;
+  color: #e5e7eb;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.admin-title-group h2 {
+  margin: 0;
+  font-size: 1.75rem;
+  letter-spacing: 0.03em;
+}
+
+.admin-title-group p {
+  margin: 0.25rem 0 0;
+  color: #9ca3af;
+  font-size: 0.95rem;
+}
+
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(22, 163, 74, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #bbf7d0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.admin-back-btn {
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: rgba(15, 23, 42, 0.75);
+  color: #e5e7eb;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.admin-back-btn:hover {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: rgba(148, 163, 184, 0.9);
+  transform: translateY(-1px);
+}
+
+.admin-back-btn span {
+  font-size: 1.1rem;
+}
+
+.admin-content {
+  margin-top: 0.5rem;
+}
+
+.admin-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.admin-section-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #e5e7eb;
+}
+
+.admin-section-header small {
+  color: #9ca3af;
+  font-size: 0.8rem;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.admin-table thead {
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 0.7rem 0.75rem;
+  text-align: left;
+}
+
+.admin-table th {
+  font-weight: 500;
+  color: #9ca3af;
+  border-bottom: 1px solid rgba(55, 65, 81, 0.9);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.admin-table tbody tr {
+  border-bottom: 1px solid rgba(31, 41, 55, 0.85);
+}
+
+.admin-table tbody tr:nth-child(even) {
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.admin-table tbody tr:hover {
+  background: rgba(30, 64, 175, 0.4);
+}
+
+.admin-table td {
+  color: #e5e7eb;
+}
+
+.admin-role-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+}
+
+.admin-role-pill--admin {
+  background: rgba(22, 163, 74, 0.18);
+  color: #bbf7d0;
+  border: 1px solid rgba(34, 197, 94, 0.5);
+}
+
+.admin-role-pill--user {
+  background: rgba(59, 130, 246, 0.18);
+  color: #dbeafe;
+  border: 1px solid rgba(59, 130, 246, 0.5);
+}
+
+.admin-empty {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 0.9rem;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px dashed rgba(75, 85, 99, 0.8);
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .admin-card {
+    padding: 1.6rem 1.25rem;
+  }
+
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-table thead {
+    display: none;
+  }
+
+  .admin-table,
+  .admin-table tbody,
+  .admin-table tr,
+  .admin-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-table tr {
+    margin-bottom: 0.75rem;
+    border-radius: 0.75rem;
+    overflow: hidden;
+  }
+
+  .admin-table td {
+    padding: 0.45rem 0.75rem;
+  }
+
+  .admin-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+    margin-bottom: 0.15rem;
+  }
+}
+

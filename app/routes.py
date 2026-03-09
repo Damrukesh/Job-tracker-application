@@ -52,7 +52,7 @@ def login():
         return jsonify({"error": "Invalid credentials"}), 401
 
     token = create_access_token(
-        identity=user.id,
+        identity=str(user.id),
         additional_claims={"role": user.role.role_name}
     )
 
@@ -61,13 +61,13 @@ def login():
 @auth_routes.route("/protected", methods=["GET"])
 @jwt_required()
 def protected():
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     return jsonify({"user_id": current_user_id})
 @auth_routes.route("/admin", methods=["GET"])
 @jwt_required()
 def admin_only():
     # Always check role from DB to avoid stale tokens
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     user = User.query.get(user_id)
 
     if not user or not user.role or user.role.role_name != "admin":
@@ -79,7 +79,7 @@ def admin_only():
 @auth_routes.route("/admin/users", methods=["GET"])
 @jwt_required()
 def get_users():
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     user = User.query.get(user_id)
 
     # 🔒 Admin-only protection based on DB role
@@ -101,7 +101,7 @@ def get_users():
 @auth_routes.route("/profile", methods=["GET"])
 @jwt_required()
 def profile():
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     user = User.query.get(user_id)
 
     return jsonify({
@@ -110,3 +110,18 @@ def profile():
         "email": user.email,
         "role": user.role.role_name
     })
+
+@auth_routes.route("/check-admin", methods=["GET"])
+@jwt_required()
+def check_admin():
+    user_id = int(get_jwt_identity())
+    user = User.query.get(user_id)
+
+    # Not found or missing role -> treat as forbidden for this check
+    if not user or not user.role:
+        return jsonify({"admin": False}), 403
+
+    if user.role.role_name != "admin":
+        return jsonify({"admin": False}), 403
+
+    return jsonify({"admin": True}), 200
