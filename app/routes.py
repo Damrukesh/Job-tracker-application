@@ -14,8 +14,12 @@ def signup():
         data["password"]
     ).decode("utf-8")
 
-    # Get default role = "user"
-    default_role = Role.query.filter_by(role_name="user").first()
+    # Default role for signups = "candidate"
+    default_role = Role.query.filter_by(role_name="candidate").first()
+    if not default_role:
+        default_role = Role(role_name="candidate")
+        db.session.add(default_role)
+        db.session.flush()
 
     user = User(
         name=data["name"],

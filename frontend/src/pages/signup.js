@@ -78,7 +78,7 @@ export default function Signup() {
             </div>
 
             <div className="auth-footer-hint">
-              Default signups use the <strong>user</strong> role.
+              Default signups use the <strong>candidate</strong> role.
             </div>
           </div>
         </div>
