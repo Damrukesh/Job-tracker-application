@@ -3,6 +3,8 @@ import Login from "./pages/login"
 import Signup from "./pages/signup"
 import Dashboard from "./pages/dashboard"
 import Admin from "./pages/admin"
+import Jobs from "./pages/jobs"
+import JobFeed from "./pages/jobFeed"
 
 function App() {
   return (
@@ -12,6 +14,8 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/jobs" element={<Jobs />} />
+        <Route path="/jobs-feed" element={<JobFeed />} />
       </Routes>
     </BrowserRouter>
   )

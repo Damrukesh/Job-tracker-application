@@ -33,7 +33,7 @@ export default function Dashboard() {
         <div className="dashboard-card">
           <div className="dashboard-header">
             <div className="dashboard-title">
-              <h2>Dashboard</h2>
+              <h2>Welcome to the Dashboard</h2>
               <p>You are signed in to the job tracker.</p>
             </div>
             {role && (
@@ -54,6 +54,26 @@ export default function Dashboard() {
             <button className="dashboard-btn" type="button" onClick={logout}>
               Logout
             </button>
+
+            {role === "candidate" && (
+              <button
+                className="dashboard-btn"
+                type="button"
+                onClick={() => navigate("/jobs-feed")}
+              >
+                Browse jobs
+              </button>
+            )}
+
+            {role === "recruiter" && (
+              <button
+                className="dashboard-btn"
+                type="button"
+                onClick={() => navigate("/jobs")}
+              >
+                My jobs
+              </button>
+            )}
 
             {role === "admin" && (
               <button
@@ -76,12 +96,7 @@ export default function Dashboard() {
           <h3 className="dashboard-side-card-title">About this app</h3>
           <div className="dashboard-side-card-body">
             <p>
-              This dashboard is protected by JWT authentication. Use it as a starting
-              point for your own job tracking workflow.
-            </p>
-            <p>
-              You can extend it with more pages and connect real job data while keeping
-              the same access control rules.
+              Track all your job application workflows
             </p>
           </div>
         </div>

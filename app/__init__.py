@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from app.config import Config
+import os
 from flask_cors import CORS
 from flask import jsonify
 
@@ -14,6 +15,9 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     app.config["JWT_SECRET_KEY"] = "super-secret-key"
+    # File uploads
+    app.config.setdefault("UPLOAD_FOLDER", os.path.join(app.root_path, "static", "uploads"))
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
     db.init_app(app)
     bcrypt.init_app(app)

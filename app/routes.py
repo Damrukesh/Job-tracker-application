@@ -1,8 +1,11 @@
 from flask import Blueprint, request, jsonify
-from .models import User
+from .models import User, JobPost, Application
 from . import db, bcrypt
 from flask_jwt_extended import create_access_token,jwt_required, get_jwt_identity,get_jwt
 from .models import Role
+from werkzeug.utils import secure_filename
+from flask import current_app
+import os
 
 auth_routes = Blueprint("auth", __name__)
 
@@ -129,3 +132,184 @@ def check_admin():
         return jsonify({"admin": False}), 403
 
     return jsonify({"admin": True}), 200
+
+
+@auth_routes.route("/jobs", methods=["GET", "POST"])
+@jwt_required()
+def jobs():
+    # Recruiter can create jobs and view only their own jobs.
+    user_id = int(get_jwt_identity())
+    user = User.query.get(user_id)
+
+    if not user or not user.role or user.role.role_name != "recruiter":
+        return jsonify({"error": "Recruiters only"}), 403
+
+    if request.method == "POST":
+        data = request.json or {}
+        title = data.get("title")
+        description = data.get("description")
+        location = data.get("location")
+
+        if not title or not description or not location:
+            return jsonify({"error": "title, description, and location are required"}), 400
+
+        job = JobPost(
+            title=title,
+            description=description,
+            location=location,
+            recruiter_id=user.id,
+        )
+        db.session.add(job)
+        db.session.commit()
+
+        return (
+            jsonify(
+                {
+                    "id": job.id,
+                    "title": job.title,
+                    "description": job.description,
+                    "location": job.location,
+                    "date_created": job.date_created.isoformat(),
+                    "recruiter_id": job.recruiter_id,
+                }
+            ),
+            201,
+        )
+
+    # GET
+    jobs = (
+        JobPost.query.filter_by(recruiter_id=user.id)
+        .order_by(JobPost.date_created.desc())
+        .all()
+    )
+
+    return jsonify(
+        [
+            {
+                "id": j.id,
+                "title": j.title,
+                "description": j.description,
+                "location": j.location,
+                "date_created": j.date_created.isoformat() if j.date_created else None,
+            }
+            for j in jobs
+        ]
+    )
+
+
+@auth_routes.route("/jobs/<int:job_id>", methods=["GET"])
+@jwt_required()
+def job_detail(job_id: int):
+    # View a specific job the recruiter created.
+    user_id = int(get_jwt_identity())
+    user = User.query.get(user_id)
+
+    if not user or not user.role or user.role.role_name != "recruiter":
+        return jsonify({"error": "Recruiters only"}), 403
+
+    job = JobPost.query.get(job_id)
+    if not job:
+        return jsonify({"error": "Job not found"}), 404
+
+    if job.recruiter_id != user.id:
+        return jsonify({"error": "Forbidden"}), 403
+
+    return jsonify(
+        {
+            "id": job.id,
+            "title": job.title,
+            "description": job.description,
+            "location": job.location,
+            "date_created": job.date_created.isoformat() if job.date_created else None,
+            "recruiter_id": job.recruiter_id,
+        }
+    )
+
+
+@auth_routes.route("/jobs-feed", methods=["GET"])
+@jwt_required()
+def jobs_feed():
+    # Candidates can see all jobs.
+    user_id = int(get_jwt_identity())
+    user = User.query.get(user_id)
+
+    if not user or not user.role or user.role.role_name != "candidate":
+        return jsonify({"error": "Candidates only"}), 403
+
+    jobs = JobPost.query.order_by(JobPost.date_created.desc()).all()
+    return jsonify(
+        [
+            {
+                "id": j.id,
+                "title": j.title,
+                "description": j.description,
+                "location": j.location,
+                "date_created": j.date_created.isoformat() if j.date_created else None,
+            }
+            for j in jobs
+        ]
+    )
+
+
+ALLOWED_EXTENSIONS = {"pdf"}
+
+
+def _allowed_file(filename: str) -> bool:
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@auth_routes.route("/apply", methods=["POST"])
+@jwt_required()
+def apply():
+    # Candidate applies to a job with a PDF resume.
+    user_id = int(get_jwt_identity())
+    user = User.query.get(user_id)
+
+    if not user or not user.role or user.role.role_name != "candidate":
+        return jsonify({"error": "Candidates only"}), 403
+
+    job_id = request.form.get("job_id", type=int)
+    candidate_name = request.form.get("candidate_name") or user.name
+    file = request.files.get("resume")
+
+    if not job_id or not file:
+        return jsonify({"error": "job_id and resume are required"}), 400
+
+    job = JobPost.query.get(job_id)
+    if not job:
+        return jsonify({"error": "Job not found"}), 404
+
+    if file.filename == "" or not _allowed_file(file.filename):
+        return jsonify({"error": "Only PDF files are allowed"}), 400
+
+    filename = secure_filename(file.filename)
+    upload_folder = current_app.config["UPLOAD_FOLDER"]
+
+    # Ensure unique filename per user+job by prefixing.
+    unique_name = f"user{user.id}_job{job.id}_{filename}"
+    save_path = os.path.join(upload_folder, unique_name)
+
+    file.save(save_path)
+
+    rel_path = os.path.relpath(save_path, current_app.root_path)
+
+    application = Application(
+        candidate_name=candidate_name,
+        resume_filename=rel_path,
+        match_score=0.0,
+        job_id=job.id,
+        user_id=user.id,
+    )
+    db.session.add(application)
+    db.session.commit()
+
+    return jsonify(
+        {
+            "id": application.id,
+            "candidate_name": application.candidate_name,
+            "resume_filename": application.resume_filename,
+            "match_score": application.match_score,
+            "job_id": application.job_id,
+            "user_id": application.user_id,
+        }
+    ), 201
