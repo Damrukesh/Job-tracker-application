@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 
 export default function JobFeed() {
   const [jobs, setJobs] = useState([])
+  const [applicationsByJob, setApplicationsByJob] = useState({})
   const [uploadingId, setUploadingId] = useState(null)
   const navigate = useNavigate()
 
@@ -14,15 +15,31 @@ export default function JobFeed() {
       return
     }
 
-    fetch("http://127.0.0.1:5000/jobs-feed", {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => {
-        if (res.status === 401 || res.status === 403) throw new Error("Not authorized")
-        if (!res.ok) throw new Error("Request failed")
-        return res.json()
+    Promise.all([
+      fetch("http://127.0.0.1:5000/jobs-feed", {
+        headers: { Authorization: `Bearer ${token}` }
+      }),
+      fetch("http://127.0.0.1:5000/my-applications", {
+        headers: { Authorization: `Bearer ${token}` }
       })
-      .then(setJobs)
+    ])
+      .then(async ([jobsRes, appsRes]) => {
+        if (jobsRes.status === 401 || jobsRes.status === 403) throw new Error("Not authorized")
+        if (!jobsRes.ok || !appsRes.ok) throw new Error("Request failed")
+        const jobsData = await jobsRes.json()
+        const appsData = await appsRes.json()
+        return { jobsData, appsData }
+      })
+      .then(({ jobsData, appsData }) => {
+        setJobs(jobsData)
+        const mapped = {}
+        appsData.forEach(app => {
+          if (!mapped[app.job_id] || app.id > mapped[app.job_id].id) {
+            mapped[app.job_id] = app
+          }
+        })
+        setApplicationsByJob(mapped)
+      })
       .catch(err => {
         console.error(err)
         navigate("/dashboard")
@@ -57,6 +74,22 @@ export default function JobFeed() {
       })
       .then(() => {
         alert("Application submitted!")
+        return fetch("http://127.0.0.1:5000/my-applications", {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Could not refresh applications")
+        return res.json()
+      })
+      .then(appsData => {
+        const mapped = {}
+        appsData.forEach(app => {
+          if (!mapped[app.job_id] || app.id > mapped[app.job_id].id) {
+            mapped[app.job_id] = app
+          }
+        })
+        setApplicationsByJob(mapped)
       })
       .catch(err => {
         console.error(err)
@@ -96,6 +129,7 @@ export default function JobFeed() {
                   <th>Title</th>
                   <th>Location</th>
                   <th>Description</th>
+                  <th>Latest Match Score</th>
                   <th>Apply</th>
                 </tr>
               </thead>
@@ -105,6 +139,11 @@ export default function JobFeed() {
                     <td data-label="Title">{j.title}</td>
                     <td data-label="Location">{j.location}</td>
                     <td data-label="Description">{j.description}</td>
+                    <td data-label="Latest Match Score">
+                      {applicationsByJob[j.id]
+                        ? `${applicationsByJob[j.id].match_score}%`
+                        : "Not applied"}
+                    </td>
                     <td data-label="Apply">
                       <input
                         type="file"

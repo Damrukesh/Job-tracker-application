@@ -147,6 +147,7 @@ export default function Jobs() {
                   <th>Title</th>
                   <th>Location</th>
                   <th>Created</th>
+                  <th>Applications (Score)</th>
                 </tr>
               </thead>
               <tbody>
@@ -156,6 +157,15 @@ export default function Jobs() {
                     <td data-label="Location">{j.location}</td>
                     <td data-label="Created">
                       {j.date_created ? new Date(j.date_created).toLocaleString() : "-"}
+                    </td>
+                    <td data-label="Applications (Score)">
+                      {j.applications && j.applications.length > 0
+                        ? j.applications.map(app => (
+                            <div key={app.id}>
+                              {app.candidate_name}: {app.match_score}%
+                            </div>
+                          ))
+                        : "No applications"}
                     </td>
                   </tr>
                 ))}

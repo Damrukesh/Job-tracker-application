@@ -6,6 +6,10 @@ from .models import Role
 from werkzeug.utils import secure_filename
 from flask import current_app
 import os
+import re
+import fitz
+from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS, TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 auth_routes = Blueprint("auth", __name__)
 
@@ -191,6 +195,16 @@ def jobs():
                 "description": j.description,
                 "location": j.location,
                 "date_created": j.date_created.isoformat() if j.date_created else None,
+                "applications": [
+                    {
+                        "id": app.id,
+                        "candidate_name": app.candidate_name,
+                        "resume_filename": app.resume_filename,
+                        "match_score": app.match_score,
+                        "user_id": app.user_id,
+                    }
+                    for app in j.applications
+                ],
             }
             for j in jobs
         ]
@@ -222,6 +236,16 @@ def job_detail(job_id: int):
             "location": job.location,
             "date_created": job.date_created.isoformat() if job.date_created else None,
             "recruiter_id": job.recruiter_id,
+            "applications": [
+                {
+                    "id": app.id,
+                    "candidate_name": app.candidate_name,
+                    "resume_filename": app.resume_filename,
+                    "match_score": app.match_score,
+                    "user_id": app.user_id,
+                }
+                for app in job.applications
+            ],
         }
     )
 
@@ -258,6 +282,34 @@ def _allowed_file(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def _extract_pdf_pages_as_list(pdf_path: str) -> list[str]:
+    pages_text = []
+    with fitz.open(pdf_path) as doc:
+        for page in doc:
+            pages_text.append(page.get_text("text") or "")
+    return pages_text
+
+
+def _clean_text(text: str) -> str:
+    text = text.lower()
+    text = re.sub(r"[^a-z0-9\s]", " ", text)
+    tokens = [tok for tok in text.split() if tok and tok not in ENGLISH_STOP_WORDS]
+    return " ".join(tokens)
+
+
+def _compute_match_score(resume_text: str, job_description: str) -> float:
+    cleaned_resume = _clean_text(resume_text)
+    cleaned_job = _clean_text(job_description)
+
+    if not cleaned_resume.strip() or not cleaned_job.strip():
+        return 0.0
+
+    vectorizer = TfidfVectorizer()
+    matrix = vectorizer.fit_transform([cleaned_resume, cleaned_job])
+    score = cosine_similarity(matrix[0:1], matrix[1:2])[0][0]
+    return round(float(score * 100), 2)
+
+
 @auth_routes.route("/apply", methods=["POST"])
 @jwt_required()
 def apply():
@@ -292,11 +344,14 @@ def apply():
     file.save(save_path)
 
     rel_path = os.path.relpath(save_path, current_app.root_path)
+    page_texts = _extract_pdf_pages_as_list(save_path)
+    resume_text = " ".join(page_texts)
+    score = _compute_match_score(resume_text, job.description)
 
     application = Application(
         candidate_name=candidate_name,
         resume_filename=rel_path,
-        match_score=0.0,
+        match_score=score,
         job_id=job.id,
         user_id=user.id,
     )
@@ -313,3 +368,33 @@ def apply():
             "user_id": application.user_id,
         }
     ), 201
+
+
+@auth_routes.route("/my-applications", methods=["GET"])
+@jwt_required()
+def my_applications():
+    user_id = int(get_jwt_identity())
+    user = User.query.get(user_id)
+
+    if not user or not user.role or user.role.role_name != "candidate":
+        return jsonify({"error": "Candidates only"}), 403
+
+    apps = (
+        Application.query.filter_by(user_id=user.id)
+        .order_by(Application.id.desc())
+        .all()
+    )
+
+    return jsonify(
+        [
+            {
+                "id": app.id,
+                "job_id": app.job_id,
+                "job_title": app.job.title if app.job else None,
+                "candidate_name": app.candidate_name,
+                "resume_filename": app.resume_filename,
+                "match_score": app.match_score,
+            }
+            for app in apps
+        ]
+    )
